@@ -15,7 +15,7 @@ const handleApiError = (error: any, customMessage?: string) => {
 // Dashboard services
 export const fetchDashboardMetrics = async () => {
   try {
-    // Mock data for dashboard metrics since the table doesn't exist yet
+    // Use mock data for dashboard metrics
     return [
       { metric_name: 'Total Patients', metric_value: 458 },
       { metric_name: 'Beds Occupied', metric_value: 87 },
