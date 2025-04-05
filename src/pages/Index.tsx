@@ -9,8 +9,8 @@ const Index = () => {
 
   useEffect(() => {
     // No need to navigate, we're already on the root path
-    // This is just here in case we need to add any initialization logic
-  }, [navigate]);
+    console.log("Dashboard initialized");
+  }, []);
 
   return (
     <MainLayout>
