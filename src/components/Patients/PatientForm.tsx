@@ -5,15 +5,36 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Loader2 } from 'lucide-react';
+
+// Define validation schema
+const patientFormSchema = z.object({
+  first_name: z.string().min(1, "First name is required"),
+  last_name: z.string().min(1, "Last name is required"),
+  date_of_birth: z.string().optional(),
+  gender: z.string().optional(),
+  email: z.string().email("Invalid email format").optional().or(z.literal('')),
+  contact_number: z.string().optional(),
+  address: z.string().optional(),
+});
 
 interface PatientFormProps {
   patient?: any;
   onSubmit: (data: any) => void;
   onCancel: () => void;
+  isSubmitting?: boolean;
 }
 
-const PatientForm: React.FC<PatientFormProps> = ({ patient, onSubmit, onCancel }) => {
+const PatientForm: React.FC<PatientFormProps> = ({ 
+  patient, 
+  onSubmit, 
+  onCancel, 
+  isSubmitting = false 
+}) => {
   const form = useForm({
+    resolver: zodResolver(patientFormSchema),
     defaultValues: patient ? {
       first_name: patient.first_name || '',
       last_name: patient.last_name || '',
@@ -151,11 +172,26 @@ const PatientForm: React.FC<PatientFormProps> = ({ patient, onSubmit, onCancel }
         />
 
         <div className="flex justify-end gap-2 pt-4">
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
             Cancel
           </Button>
-          <Button type="submit">
-            Save Patient
+          <Button 
+            type="submit"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {patient ? 'Updating...' : 'Saving...'}
+              </>
+            ) : (
+              patient ? 'Update Patient' : 'Save Patient'
+            )}
           </Button>
         </div>
       </form>

@@ -15,7 +15,7 @@ const handleApiError = (error: any, customMessage?: string) => {
 // Dashboard services
 export const fetchDashboardMetrics = async () => {
   try {
-    // Use mock data for dashboard metrics
+    // Use mock data for dashboard metrics until we create a dashboard_metrics table
     return [
       { metric_name: 'Total Patients', metric_value: 458 },
       { metric_name: 'Beds Occupied', metric_value: 87 },
@@ -79,14 +79,10 @@ export const createPatient = async (patientData: any) => {
       .single();
     
     if (error) throw error;
-    toast({
-      title: "Success",
-      description: "Patient created successfully",
-    });
     return data;
   } catch (error) {
     handleApiError(error, "Failed to create patient");
-    return null;
+    throw error;
   }
 };
 
@@ -100,14 +96,10 @@ export const updatePatient = async (id: string, patientData: any) => {
       .single();
     
     if (error) throw error;
-    toast({
-      title: "Success",
-      description: "Patient updated successfully",
-    });
     return data;
   } catch (error) {
     handleApiError(error, "Failed to update patient");
-    return null;
+    throw error;
   }
 };
 
@@ -119,83 +111,10 @@ export const deletePatient = async (id: string) => {
       .eq("id", id);
     
     if (error) throw error;
-    toast({
-      title: "Success",
-      description: "Patient deleted successfully",
-    });
     return true;
   } catch (error) {
     handleApiError(error, "Failed to delete patient");
-    return false;
-  }
-};
-
-// Appointment services
-export const fetchAppointments = async (filterOptions?: { 
-  startDate?: string, 
-  endDate?: string, 
-  doctorId?: string, 
-  status?: string 
-}) => {
-  try {
-    // Since appointments table doesn't exist in the allowed tables, return mock data
-    return [];
-  } catch (error) {
-    handleApiError(error, "Failed to fetch appointments");
-    return [];
-  }
-};
-
-export const createAppointment = async (appointmentData: any) => {
-  try {
-    // Since appointments table doesn't exist in the allowed tables, mock a success
-    toast({
-      title: "Success",
-      description: "Appointment scheduled successfully",
-    });
-    return { id: "mock-id", ...appointmentData };
-  } catch (error) {
-    handleApiError(error, "Failed to schedule appointment");
-    return null;
-  }
-};
-
-export const updateAppointment = async (id: string, appointmentData: any) => {
-  try {
-    // Since appointments table doesn't exist in the allowed tables, mock a success
-    toast({
-      title: "Success",
-      description: "Appointment updated successfully",
-    });
-    return { id, ...appointmentData };
-  } catch (error) {
-    handleApiError(error, "Failed to update appointment");
-    return null;
-  }
-};
-
-export const deleteAppointment = async (id: string) => {
-  try {
-    // Since appointments table doesn't exist in the allowed tables, mock a success
-    toast({
-      title: "Success",
-      description: "Appointment deleted successfully",
-    });
-    return true;
-  } catch (error) {
-    handleApiError(error, "Failed to delete appointment");
-    return false;
-  }
-};
-
-// Staff services
-export const fetchStaff = async (searchTerm?: string, role?: string) => {
-  try {
-    // Since staff table doesn't exist in the allowed tables, return mock data
-    return [];
-  } catch (error) {
-    handleApiError(error, "Failed to fetch staff");
-    return [];
+    throw error;
   }
 };
 
@@ -204,13 +123,62 @@ export const fetchWards = async () => {
   try {
     const { data, error } = await supabase
       .from("wards")
-      .select("*");
+      .select("*")
+      .order("name", { ascending: true });
     
     if (error) throw error;
     return data || [];
   } catch (error) {
     handleApiError(error, "Failed to fetch wards");
     return [];
+  }
+};
+
+export const createWard = async (wardData: any) => {
+  try {
+    const { data, error } = await supabase
+      .from("wards")
+      .insert(wardData)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    handleApiError(error, "Failed to create ward");
+    throw error;
+  }
+};
+
+export const updateWard = async (id: string, wardData: any) => {
+  try {
+    const { data, error } = await supabase
+      .from("wards")
+      .update(wardData)
+      .eq("id", id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    handleApiError(error, "Failed to update ward");
+    throw error;
+  }
+};
+
+export const deleteWard = async (id: string) => {
+  try {
+    const { error } = await supabase
+      .from("wards")
+      .delete()
+      .eq("id", id);
+    
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    handleApiError(error, "Failed to delete ward");
+    throw error;
   }
 };
 
@@ -225,7 +193,7 @@ export const fetchBeds = async (wardId?: string) => {
       query = query.eq("ward_id", wardId);
     }
     
-    const { data, error } = await query;
+    const { data, error } = await query.order("bed_number");
     
     if (error) throw error;
     return data || [];
@@ -235,19 +203,67 @@ export const fetchBeds = async (wardId?: string) => {
   }
 };
 
+export const createBed = async (bedData: any) => {
+  try {
+    const { data, error } = await supabase
+      .from("beds")
+      .insert(bedData)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    handleApiError(error, "Failed to create bed");
+    throw error;
+  }
+};
+
+export const updateBed = async (id: string, bedData: any) => {
+  try {
+    const { data, error } = await supabase
+      .from("beds")
+      .update(bedData)
+      .eq("id", id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    handleApiError(error, "Failed to update bed");
+    throw error;
+  }
+};
+
+export const deleteBed = async (id: string) => {
+  try {
+    const { error } = await supabase
+      .from("beds")
+      .delete()
+      .eq("id", id);
+    
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    handleApiError(error, "Failed to delete bed");
+    throw error;
+  }
+};
+
 export const fetchBedAssignments = async (status?: string) => {
   try {
     let query = supabase.from("bed_assignments").select(`
       *,
       patients:patient_id(id, first_name, last_name),
-      beds:bed_id(id, bed_number, ward_id)
+      beds:bed_id(id, bed_number, ward_id, wards:ward_id(id, name))
     `);
     
     if (status) {
       query = query.eq("status", status);
     }
     
-    const { data, error } = await query;
+    const { data, error } = await query.order("admission_date", { ascending: false });
     
     if (error) throw error;
     return data || [];
@@ -257,10 +273,473 @@ export const fetchBedAssignments = async (status?: string) => {
   }
 };
 
+export const createBedAssignment = async (assignmentData: any) => {
+  try {
+    // Update bed status to occupied
+    const updateBedResponse = await supabase
+      .from("beds")
+      .update({ status: "occupied" })
+      .eq("id", assignmentData.bed_id);
+    
+    if (updateBedResponse.error) throw updateBedResponse.error;
+    
+    // Create the bed assignment
+    const { data, error } = await supabase
+      .from("bed_assignments")
+      .insert(assignmentData)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    handleApiError(error, "Failed to create bed assignment");
+    throw error;
+  }
+};
+
+export const updateBedAssignment = async (id: string, assignmentData: any) => {
+  try {
+    const { data, error } = await supabase
+      .from("bed_assignments")
+      .update(assignmentData)
+      .eq("id", id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    // If discharge is completed, update bed status to available
+    if (assignmentData.status === "discharged" && assignmentData.actual_discharge_date) {
+      const updateBedResponse = await supabase
+        .from("beds")
+        .update({ status: "available" })
+        .eq("id", data.bed_id);
+      
+      if (updateBedResponse.error) throw updateBedResponse.error;
+    }
+    
+    return data;
+  } catch (error) {
+    handleApiError(error, "Failed to update bed assignment");
+    throw error;
+  }
+};
+
+export const deleteBedAssignment = async (id: string, bedId: string) => {
+  try {
+    const { error } = await supabase
+      .from("bed_assignments")
+      .delete()
+      .eq("id", id);
+    
+    if (error) throw error;
+    
+    // Update bed status back to available
+    const updateBedResponse = await supabase
+      .from("beds")
+      .update({ status: "available" })
+      .eq("id", bedId);
+    
+    if (updateBedResponse.error) throw updateBedResponse.error;
+    
+    return true;
+  } catch (error) {
+    handleApiError(error, "Failed to delete bed assignment");
+    throw error;
+  }
+};
+
+// Laboratory services
+export const fetchLabTests = async (searchTerm?: string) => {
+  try {
+    let query = supabase.from("lab_tests").select("*");
+    
+    if (searchTerm) {
+      query = query.ilike("name", `%${searchTerm}%`);
+    }
+    
+    const { data, error } = await query.order("name", { ascending: true });
+    
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    handleApiError(error, "Failed to fetch lab tests");
+    return [];
+  }
+};
+
+export const createLabTest = async (testData: any) => {
+  try {
+    const { data, error } = await supabase
+      .from("lab_tests")
+      .insert(testData)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    handleApiError(error, "Failed to create lab test");
+    throw error;
+  }
+};
+
+export const updateLabTest = async (id: string, testData: any) => {
+  try {
+    const { data, error } = await supabase
+      .from("lab_tests")
+      .update(testData)
+      .eq("id", id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    handleApiError(error, "Failed to update lab test");
+    throw error;
+  }
+};
+
+export const deleteLabTest = async (id: string) => {
+  try {
+    const { error } = await supabase
+      .from("lab_tests")
+      .delete()
+      .eq("id", id);
+    
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    handleApiError(error, "Failed to delete lab test");
+    throw error;
+  }
+};
+
+// Medication services
+export const fetchMedications = async (searchTerm?: string) => {
+  try {
+    let query = supabase.from("medications").select("*");
+    
+    if (searchTerm) {
+      query = query.ilike("name", `%${searchTerm}%`);
+    }
+    
+    const { data, error } = await query.order("name", { ascending: true });
+    
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    handleApiError(error, "Failed to fetch medications");
+    return [];
+  }
+};
+
+export const createMedication = async (medicationData: any) => {
+  try {
+    const { data, error } = await supabase
+      .from("medications")
+      .insert(medicationData)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    handleApiError(error, "Failed to create medication");
+    throw error;
+  }
+};
+
+export const updateMedication = async (id: string, medicationData: any) => {
+  try {
+    const { data, error } = await supabase
+      .from("medications")
+      .update(medicationData)
+      .eq("id", id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    handleApiError(error, "Failed to update medication");
+    throw error;
+  }
+};
+
+export const deleteMedication = async (id: string) => {
+  try {
+    const { error } = await supabase
+      .from("medications")
+      .delete()
+      .eq("id", id);
+    
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    handleApiError(error, "Failed to delete medication");
+    throw error;
+  }
+};
+
+// Radiology services
+export const fetchRadiologyExams = async (searchTerm?: string) => {
+  try {
+    let query = supabase.from("radiology_exams").select("*");
+    
+    if (searchTerm) {
+      query = query.ilike("name", `%${searchTerm}%`);
+    }
+    
+    const { data, error } = await query.order("name", { ascending: true });
+    
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    handleApiError(error, "Failed to fetch radiology exams");
+    return [];
+  }
+};
+
+export const createRadiologyExam = async (examData: any) => {
+  try {
+    const { data, error } = await supabase
+      .from("radiology_exams")
+      .insert(examData)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    handleApiError(error, "Failed to create radiology exam");
+    throw error;
+  }
+};
+
+export const updateRadiologyExam = async (id: string, examData: any) => {
+  try {
+    const { data, error } = await supabase
+      .from("radiology_exams")
+      .update(examData)
+      .eq("id", id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    handleApiError(error, "Failed to update radiology exam");
+    throw error;
+  }
+};
+
+export const deleteRadiologyExam = async (id: string) => {
+  try {
+    const { error } = await supabase
+      .from("radiology_exams")
+      .delete()
+      .eq("id", id);
+    
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    handleApiError(error, "Failed to delete radiology exam");
+    throw error;
+  }
+};
+
+// The following services use mock data as their tables don't exist yet in Supabase
+// These would be updated once the corresponding tables are created
+
+// Appointment services
+export const fetchAppointments = async (filterOptions?: { 
+  startDate?: string, 
+  endDate?: string, 
+  doctorId?: string, 
+  status?: string 
+}) => {
+  try {
+    // Mock data for appointments
+    return [
+      {
+        id: "1",
+        patient_id: "1",
+        patient_name: "John Doe",
+        appointment_date: "2025-04-10T09:00:00",
+        purpose: "General Checkup",
+        status: "scheduled",
+        doctor_name: "Dr. Smith"
+      },
+      {
+        id: "2",
+        patient_id: "2",
+        patient_name: "Jane Smith",
+        appointment_date: "2025-04-11T10:30:00",
+        purpose: "Follow-up",
+        status: "completed",
+        doctor_name: "Dr. Johnson"
+      },
+      {
+        id: "3",
+        patient_id: "3",
+        patient_name: "Robert Brown",
+        appointment_date: "2025-04-08T14:15:00",
+        purpose: "Consultation",
+        status: "cancelled",
+        doctor_name: "Dr. Williams"
+      }
+    ];
+  } catch (error) {
+    handleApiError(error, "Failed to fetch appointments");
+    return [];
+  }
+};
+
+export const createAppointment = async (appointmentData: any) => {
+  try {
+    // Mock creating an appointment
+    console.log("Creating appointment:", appointmentData);
+    return { id: Date.now().toString(), ...appointmentData };
+  } catch (error) {
+    handleApiError(error, "Failed to create appointment");
+    throw error;
+  }
+};
+
+export const updateAppointment = async (id: string, appointmentData: any) => {
+  try {
+    // Mock updating an appointment
+    console.log("Updating appointment:", id, appointmentData);
+    return { id, ...appointmentData };
+  } catch (error) {
+    handleApiError(error, "Failed to update appointment");
+    throw error;
+  }
+};
+
+export const deleteAppointment = async (id: string) => {
+  try {
+    // Mock deleting an appointment
+    console.log("Deleting appointment:", id);
+    return true;
+  } catch (error) {
+    handleApiError(error, "Failed to delete appointment");
+    throw error;
+  }
+};
+
+// Staff services
+export const fetchStaff = async (searchTerm?: string, role?: string) => {
+  try {
+    // Mock data for staff
+    const mockStaff = [
+      {
+        id: "1",
+        first_name: "Sarah",
+        last_name: "Johnson",
+        role: "Doctor",
+        specialty: "Cardiology",
+        email: "sarah.johnson@example.com",
+        phone: "+1 (555) 123-4567",
+        status: "Active"
+      },
+      {
+        id: "2",
+        first_name: "Michael",
+        last_name: "Williams",
+        role: "Nurse",
+        specialty: "Emergency",
+        email: "michael.williams@example.com",
+        phone: "+1 (555) 987-6543",
+        status: "Active"
+      },
+      {
+        id: "3",
+        first_name: "Jessica",
+        last_name: "Brown",
+        role: "Doctor",
+        specialty: "Pediatrics",
+        email: "jessica.brown@example.com",
+        phone: "+1 (555) 456-7890",
+        status: "On Leave"
+      },
+      {
+        id: "4",
+        first_name: "David",
+        last_name: "Miller",
+        role: "Technician",
+        specialty: "Radiology",
+        email: "david.miller@example.com",
+        phone: "+1 (555) 234-5678",
+        status: "Active"
+      }
+    ];
+    
+    // Filter by search term
+    let filteredStaff = [...mockStaff];
+    if (searchTerm) {
+      const searchTermLower = searchTerm.toLowerCase();
+      filteredStaff = filteredStaff.filter(staff => 
+        staff.first_name.toLowerCase().includes(searchTermLower) || 
+        staff.last_name.toLowerCase().includes(searchTermLower) || 
+        staff.email.toLowerCase().includes(searchTermLower)
+      );
+    }
+    
+    // Filter by role
+    if (role) {
+      filteredStaff = filteredStaff.filter(staff => staff.role === role);
+    }
+    
+    return filteredStaff;
+  } catch (error) {
+    handleApiError(error, "Failed to fetch staff");
+    return [];
+  }
+};
+
+export const createStaff = async (staffData: any) => {
+  try {
+    // Mock creating a staff member
+    console.log("Creating staff:", staffData);
+    return { id: Date.now().toString(), ...staffData };
+  } catch (error) {
+    handleApiError(error, "Failed to create staff");
+    throw error;
+  }
+};
+
+export const updateStaff = async (id: string, staffData: any) => {
+  try {
+    // Mock updating a staff member
+    console.log("Updating staff:", id, staffData);
+    return { id, ...staffData };
+  } catch (error) {
+    handleApiError(error, "Failed to update staff");
+    throw error;
+  }
+};
+
+export const deleteStaff = async (id: string) => {
+  try {
+    // Mock deleting a staff member
+    console.log("Deleting staff:", id);
+    return true;
+  } catch (error) {
+    handleApiError(error, "Failed to delete staff");
+    throw error;
+  }
+};
+
+// Mock services for other modules that don't have tables yet
+
 // Medical Records services
 export const fetchMedicalRecords = async (patientId?: string) => {
   try {
-    // Since medical_records table doesn't exist in the allowed tables, return mock data
+    // Mock data for medical records
     return [];
   } catch (error) {
     handleApiError(error, "Failed to fetch medical records");
@@ -271,7 +750,7 @@ export const fetchMedicalRecords = async (patientId?: string) => {
 // Billing services
 export const fetchBillingRecords = async (patientId?: string, paymentStatus?: string) => {
   try {
-    // Since billing_records table doesn't exist in the allowed tables, return mock data
+    // Mock data for billing records
     return [];
   } catch (error) {
     handleApiError(error, "Failed to fetch billing records");
@@ -282,7 +761,7 @@ export const fetchBillingRecords = async (patientId?: string, paymentStatus?: st
 // Inventory services
 export const fetchInventoryItems = async (category?: string) => {
   try {
-    // Since inventory_items table doesn't exist in the allowed tables, return mock data
+    // Mock data for inventory items
     return [];
   } catch (error) {
     handleApiError(error, "Failed to fetch inventory items");
@@ -290,42 +769,10 @@ export const fetchInventoryItems = async (category?: string) => {
   }
 };
 
-// Laboratory services
-export const fetchLabTests = async () => {
-  try {
-    const { data, error } = await supabase
-      .from("lab_tests")
-      .select("*")
-      .order("name", { ascending: true });
-    
-    if (error) throw error;
-    return data || [];
-  } catch (error) {
-    handleApiError(error, "Failed to fetch lab tests");
-    return [];
-  }
-};
-
-// Medication services
-export const fetchMedications = async () => {
-  try {
-    const { data, error } = await supabase
-      .from("medications")
-      .select("*")
-      .order("name", { ascending: true });
-    
-    if (error) throw error;
-    return data || [];
-  } catch (error) {
-    handleApiError(error, "Failed to fetch medications");
-    return [];
-  }
-};
-
 // Emergency services
 export const fetchEmergencyCases = async (status?: string) => {
   try {
-    // Since emergency_cases table doesn't exist in the allowed tables, return mock data
+    // Mock data for emergency cases
     return [];
   } catch (error) {
     handleApiError(error, "Failed to fetch emergency cases");
@@ -335,7 +782,7 @@ export const fetchEmergencyCases = async (status?: string) => {
 
 export const fetchAmbulances = async (status?: string) => {
   try {
-    // Since ambulance_services table doesn't exist in the allowed tables, return mock data
+    // Mock data for ambulances
     return [];
   } catch (error) {
     handleApiError(error, "Failed to fetch ambulances");
@@ -346,7 +793,7 @@ export const fetchAmbulances = async (status?: string) => {
 // Insurance services
 export const fetchInsurancePlans = async () => {
   try {
-    // Since insurance_plans table doesn't exist in the allowed tables, return mock data
+    // Mock data for insurance plans
     return [];
   } catch (error) {
     handleApiError(error, "Failed to fetch insurance plans");
@@ -356,7 +803,7 @@ export const fetchInsurancePlans = async () => {
 
 export const fetchPatientInsurance = async (patientId: string) => {
   try {
-    // Since patient_insurance table doesn't exist in the allowed tables, return mock data
+    // Mock data for patient insurance
     return [];
   } catch (error) {
     handleApiError(error, "Failed to fetch patient insurance details");
@@ -367,7 +814,7 @@ export const fetchPatientInsurance = async (patientId: string) => {
 // Support services
 export const fetchSupportTickets = async (status?: string) => {
   try {
-    // Since support_tickets table doesn't exist in the allowed tables, return mock data
+    // Mock data for support tickets
     return [];
   } catch (error) {
     handleApiError(error, "Failed to fetch support tickets");
@@ -378,7 +825,7 @@ export const fetchSupportTickets = async (status?: string) => {
 // Prescription services
 export const fetchPrescriptions = async (patientId?: string) => {
   try {
-    // Since prescriptions table doesn't exist in the allowed tables, return mock data
+    // Mock data for prescriptions
     return [];
   } catch (error) {
     handleApiError(error, "Failed to fetch prescriptions");
@@ -388,7 +835,7 @@ export const fetchPrescriptions = async (patientId?: string) => {
 
 export const fetchPrescriptionItems = async (prescriptionId: string) => {
   try {
-    // Since prescription_items table doesn't exist in the allowed tables, return mock data
+    // Mock data for prescription items
     return [];
   } catch (error) {
     handleApiError(error, "Failed to fetch prescription items");
@@ -399,7 +846,7 @@ export const fetchPrescriptionItems = async (prescriptionId: string) => {
 // Telemedicine services
 export const fetchTelemedicineSessions = async (filters?: { patientId?: string; doctorId?: string; status?: string }) => {
   try {
-    // Since telemedicine_sessions table doesn't exist in the allowed tables, return mock data
+    // Mock data for telemedicine sessions
     return [];
   } catch (error) {
     handleApiError(error, "Failed to fetch telemedicine sessions");

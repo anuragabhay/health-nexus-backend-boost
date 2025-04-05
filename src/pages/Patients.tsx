@@ -1,22 +1,24 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from '@/components/ui/use-toast';
-import { fetchPatients, createPatient, deletePatient } from '@/services/api';
+import { fetchPatients, createPatient, updatePatient, deletePatient } from '@/services/api';
 import MainLayout from '@/components/Layout/MainLayout';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Plus, Search, Pencil, Trash2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import PatientForm from '@/components/Patients/PatientForm';
 
 const Patients = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: patients, isLoading, error, refetch } = useQuery({
     queryKey: ['patients', searchTerm],
@@ -25,6 +27,7 @@ const Patients = () => {
 
   const handleCreatePatient = async (patientData: any) => {
     try {
+      setIsSubmitting(true);
       await createPatient(patientData);
       setIsAddDialogOpen(false);
       refetch();
@@ -33,29 +36,47 @@ const Patients = () => {
         description: "Patient created successfully",
       });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to create patient",
-        variant: "destructive",
-      });
+      console.error("Error creating patient:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleDeletePatient = async (id: string) => {
+  const handleUpdatePatient = async (patientData: any) => {
+    if (!selectedPatient) return;
+    
     try {
-      await deletePatient(id);
+      setIsSubmitting(true);
+      await updatePatient(selectedPatient.id, patientData);
+      setIsEditDialogOpen(false);
       refetch();
+      toast({
+        title: "Success",
+        description: "Patient updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating patient:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeletePatient = async () => {
+    if (!selectedPatient) return;
+    
+    try {
+      setIsSubmitting(true);
+      await deletePatient(selectedPatient.id);
       setIsDeleteDialogOpen(false);
+      refetch();
       toast({
         title: "Success",
         description: "Patient deleted successfully",
       });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete patient",
-        variant: "destructive",
-      });
+      console.error("Error deleting patient:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -104,46 +125,55 @@ const Patients = () => {
       ) : (
         <>
           {patients && patients.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Gender</TableHead>
-                  <TableHead>Date of Birth</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {patients.map((patient) => (
-                  <TableRow key={patient.id}>
-                    <TableCell className="font-medium">{`${patient.first_name} ${patient.last_name}`}</TableCell>
-                    <TableCell>{patient.gender || 'N/A'}</TableCell>
-                    <TableCell>{patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString() : 'N/A'}</TableCell>
-                    <TableCell>{patient.contact_number || 'N/A'}</TableCell>
-                    <TableCell>{patient.email || 'N/A'}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="icon">
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="icon"
-                          onClick={() => {
-                            setSelectedPatient(patient);
-                            setIsDeleteDialogOpen(true);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+            <div className="border rounded-md overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Gender</TableHead>
+                    <TableHead>Date of Birth</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {patients.map((patient) => (
+                    <TableRow key={patient.id}>
+                      <TableCell className="font-medium">{`${patient.first_name} ${patient.last_name}`}</TableCell>
+                      <TableCell>{patient.gender || 'N/A'}</TableCell>
+                      <TableCell>{patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString() : 'N/A'}</TableCell>
+                      <TableCell>{patient.contact_number || 'N/A'}</TableCell>
+                      <TableCell>{patient.email || 'N/A'}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="icon"
+                            onClick={() => {
+                              setSelectedPatient(patient);
+                              setIsEditDialogOpen(true);
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="icon"
+                            onClick={() => {
+                              setSelectedPatient(patient);
+                              setIsDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           ) : (
             <div className="flex flex-col items-center justify-center h-64 border rounded-md bg-muted/10">
               <p className="text-muted-foreground mb-2">No patients found</p>
@@ -165,7 +195,29 @@ const Patients = () => {
               Enter the patient's information below
             </DialogDescription>
           </DialogHeader>
-          <PatientForm onSubmit={handleCreatePatient} onCancel={() => setIsAddDialogOpen(false)} />
+          <PatientForm 
+            onSubmit={handleCreatePatient} 
+            onCancel={() => setIsAddDialogOpen(false)} 
+            isSubmitting={isSubmitting}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Patient Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Patient</DialogTitle>
+            <DialogDescription>
+              Update the patient's information
+            </DialogDescription>
+          </DialogHeader>
+          <PatientForm 
+            patient={selectedPatient} 
+            onSubmit={handleUpdatePatient} 
+            onCancel={() => setIsEditDialogOpen(false)} 
+            isSubmitting={isSubmitting}
+          />
         </DialogContent>
       </Dialog>
 
@@ -179,12 +231,15 @@ const Patients = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} disabled={isSubmitting}>
+              Cancel
+            </Button>
             <Button 
               variant="destructive" 
-              onClick={() => selectedPatient && handleDeletePatient(selectedPatient.id)}
+              onClick={handleDeletePatient}
+              disabled={isSubmitting}
             >
-              Delete
+              {isSubmitting ? "Deleting..." : "Delete"}
             </Button>
           </div>
         </DialogContent>
