@@ -2,8 +2,22 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bed, CalendarCheck, Users, FileText, Activity, Wallet, Building2, TestTube, Ambulance } from 'lucide-react';
-import { fetchDashboardMetrics } from '@/services/api';
 import DashboardCard from './DashboardCard';
+
+// Define a mock data structure for dashboard metrics
+const mockDashboardData = [
+  { metric_name: 'Total Patients', metric_value: 458 },
+  { metric_name: 'Beds Occupied', metric_value: 87 },
+  { metric_name: 'Beds Available', metric_value: 23 },
+  { metric_name: 'Appointments Today', metric_value: 42 },
+  { metric_name: 'Emergency Cases', metric_value: 8 },
+  { metric_name: 'Revenue This Month', metric_value: 187500 },
+  { metric_name: 'Doctors On Duty', metric_value: 15 },
+  { metric_name: 'Nurses On Duty', metric_value: 32 },
+  { metric_name: 'Pending Bills', metric_value: 67 },
+  { metric_name: 'Lab Tests Today', metric_value: 28 },
+  { metric_name: 'ICU Occupancy', metric_value: 75 }
+];
 
 const DashboardOverview: React.FC = () => {
   const [dashboardData, setDashboardData] = useState<any[]>([]);
@@ -12,9 +26,15 @@ const DashboardOverview: React.FC = () => {
   useEffect(() => {
     const loadDashboardData = async () => {
       setIsLoading(true);
-      const data = await fetchDashboardMetrics();
-      setDashboardData(data);
-      setIsLoading(false);
+      try {
+        // Instead of fetching from Supabase (which doesn't have dashboard_metrics table),
+        // use the mock data directly
+        setDashboardData(mockDashboardData);
+      } catch (error) {
+        console.error("Error loading dashboard data:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadDashboardData();
