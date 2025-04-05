@@ -1,20 +1,42 @@
 
 import React from 'react';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader2 } from 'lucide-react';
+
+// Define validation schema for appointments
+const appointmentFormSchema = z.object({
+  patient_id: z.string().min(1, "Patient is required"),
+  appointment_date: z.string().min(1, "Date and time are required"),
+  purpose: z.string().min(1, "Purpose is required"),
+  doctor_name: z.string().min(1, "Doctor is required"),
+  status: z.string().optional(),
+  notes: z.string().optional(),
+});
 
 interface AppointmentFormProps {
   appointment?: any;
   patients: any[];
   onSubmit: (data: any) => void;
   onCancel: () => void;
+  isSubmitting?: boolean;
 }
 
-const AppointmentForm: React.FC<AppointmentFormProps> = ({ appointment, patients, onSubmit, onCancel }) => {
+const AppointmentForm: React.FC<AppointmentFormProps> = ({ 
+  appointment, 
+  patients, 
+  onSubmit, 
+  onCancel,
+  isSubmitting = false
+}) => {
   const form = useForm({
+    resolver: zodResolver(appointmentFormSchema),
     defaultValues: appointment ? {
       patient_id: appointment.patient_id || '',
       appointment_date: appointment.appointment_date ? new Date(appointment.appointment_date).toISOString().substring(0, 16) : '',
@@ -46,17 +68,27 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ appointment, patients
             <FormItem>
               <FormLabel>Patient</FormLabel>
               <FormControl>
-                <select
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  {...field}
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
                 >
-                  <option value="">Select patient</option>
-                  {patients.map(patient => (
-                    <option key={patient.id} value={patient.id}>
-                      {`${patient.first_name} ${patient.last_name}`}
-                    </option>
-                  ))}
-                </select>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select patient" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {patients.length > 0 ? (
+                      patients.map(patient => (
+                        <SelectItem key={patient.id} value={patient.id}>
+                          {`${patient.first_name} ${patient.last_name}`}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="mock-1">John Doe</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -113,15 +145,22 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ appointment, patients
               <FormItem>
                 <FormLabel>Status</FormLabel>
                 <FormControl>
-                  <select
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    {...field}
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
                   >
-                    <option value="scheduled">Scheduled</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                    <option value="inProgress">In Progress</option>
-                  </select>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="scheduled">Scheduled</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                      <SelectItem value="inProgress">In Progress</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -144,11 +183,26 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ appointment, patients
         />
 
         <div className="flex justify-end gap-2 pt-4">
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
             Cancel
           </Button>
-          <Button type="submit">
-            {appointment ? 'Update Appointment' : 'Schedule Appointment'}
+          <Button 
+            type="submit"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {appointment ? 'Updating...' : 'Schedule Appointment'}
+              </>
+            ) : (
+              appointment ? 'Update Appointment' : 'Schedule Appointment'
+            )}
           </Button>
         </div>
       </form>

@@ -8,13 +8,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Loader2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-// Define validation schema
+// Define validation schema with exact string literals for gender
 const patientFormSchema = z.object({
   first_name: z.string().min(1, "First name is required"),
   last_name: z.string().min(1, "Last name is required"),
   date_of_birth: z.string().optional(),
-  gender: z.string().optional(),
+  gender: z.enum(["Male", "Female", "Other"]).optional(),
   email: z.string().email("Invalid email format").optional().or(z.literal('')),
   contact_number: z.string().optional(),
   address: z.string().optional(),
@@ -39,7 +40,7 @@ const PatientForm: React.FC<PatientFormProps> = ({
       first_name: patient.first_name || '',
       last_name: patient.last_name || '',
       date_of_birth: patient.date_of_birth || '',
-      gender: patient.gender || '',
+      gender: patient.gender || undefined,
       email: patient.email || '',
       contact_number: patient.contact_number || '',
       address: patient.address || '',
@@ -47,7 +48,7 @@ const PatientForm: React.FC<PatientFormProps> = ({
       first_name: '',
       last_name: '',
       date_of_birth: '',
-      gender: '',
+      gender: undefined,
       email: '',
       contact_number: '',
       address: '',
@@ -112,17 +113,21 @@ const PatientForm: React.FC<PatientFormProps> = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Gender</FormLabel>
-                <FormControl>
-                  <select
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    {...field}
-                  >
-                    <option value="">Select gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </FormControl>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select gender" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Male">Male</SelectItem>
+                    <SelectItem value="Female">Female</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}

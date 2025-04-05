@@ -551,8 +551,7 @@ export const deleteRadiologyExam = async (id: string) => {
   }
 };
 
-// The following services use mock data as their tables don't exist yet in Supabase
-// These would be updated once the corresponding tables are created
+// The following use mock data for tables that don't exist yet in Supabase
 
 // Appointment services
 export const fetchAppointments = async (filterOptions?: { 
@@ -563,7 +562,7 @@ export const fetchAppointments = async (filterOptions?: {
 }) => {
   try {
     // Mock data for appointments
-    return [
+    const mockAppointments = [
       {
         id: "1",
         patient_id: "1",
@@ -592,6 +591,26 @@ export const fetchAppointments = async (filterOptions?: {
         doctor_name: "Dr. Williams"
       }
     ];
+    
+    // Filter by date range
+    let filteredAppointments = [...mockAppointments];
+    if (filterOptions?.startDate) {
+      filteredAppointments = filteredAppointments.filter(app => 
+        new Date(app.appointment_date) >= new Date(filterOptions.startDate!)
+      );
+    }
+    if (filterOptions?.endDate) {
+      filteredAppointments = filteredAppointments.filter(app => 
+        new Date(app.appointment_date) <= new Date(filterOptions.endDate!)
+      );
+    }
+    if (filterOptions?.status) {
+      filteredAppointments = filteredAppointments.filter(app => 
+        app.status === filterOptions.status
+      );
+    }
+    
+    return filteredAppointments;
   } catch (error) {
     handleApiError(error, "Failed to fetch appointments");
     return [];
@@ -602,7 +621,19 @@ export const createAppointment = async (appointmentData: any) => {
   try {
     // Mock creating an appointment
     console.log("Creating appointment:", appointmentData);
-    return { id: Date.now().toString(), ...appointmentData };
+    const newAppointment = { 
+      id: Date.now().toString(), 
+      ...appointmentData,
+      patient_name: "Patient Name" // In a real app this would be fetched from the patient record
+    };
+    
+    // Show success toast
+    toast({
+      title: "Success",
+      description: "Appointment created successfully",
+    });
+    
+    return newAppointment;
   } catch (error) {
     handleApiError(error, "Failed to create appointment");
     throw error;
@@ -613,6 +644,13 @@ export const updateAppointment = async (id: string, appointmentData: any) => {
   try {
     // Mock updating an appointment
     console.log("Updating appointment:", id, appointmentData);
+    
+    // Show success toast
+    toast({
+      title: "Success",
+      description: "Appointment updated successfully",
+    });
+    
     return { id, ...appointmentData };
   } catch (error) {
     handleApiError(error, "Failed to update appointment");
@@ -624,6 +662,13 @@ export const deleteAppointment = async (id: string) => {
   try {
     // Mock deleting an appointment
     console.log("Deleting appointment:", id);
+    
+    // Show success toast
+    toast({
+      title: "Success",
+      description: "Appointment deleted successfully",
+    });
+    
     return true;
   } catch (error) {
     handleApiError(error, "Failed to delete appointment");
@@ -705,6 +750,13 @@ export const createStaff = async (staffData: any) => {
   try {
     // Mock creating a staff member
     console.log("Creating staff:", staffData);
+    
+    // Show success toast
+    toast({
+      title: "Success",
+      description: "Staff member created successfully",
+    });
+    
     return { id: Date.now().toString(), ...staffData };
   } catch (error) {
     handleApiError(error, "Failed to create staff");
@@ -716,6 +768,13 @@ export const updateStaff = async (id: string, staffData: any) => {
   try {
     // Mock updating a staff member
     console.log("Updating staff:", id, staffData);
+    
+    // Show success toast
+    toast({
+      title: "Success",
+      description: "Staff member updated successfully",
+    });
+    
     return { id, ...staffData };
   } catch (error) {
     handleApiError(error, "Failed to update staff");
@@ -727,6 +786,13 @@ export const deleteStaff = async (id: string) => {
   try {
     // Mock deleting a staff member
     console.log("Deleting staff:", id);
+    
+    // Show success toast
+    toast({
+      title: "Success",
+      description: "Staff member deleted successfully",
+    });
+    
     return true;
   } catch (error) {
     handleApiError(error, "Failed to delete staff");
@@ -734,13 +800,39 @@ export const deleteStaff = async (id: string) => {
   }
 };
 
-// Mock services for other modules that don't have tables yet
+// Mock services for other modules
 
 // Medical Records services
 export const fetchMedicalRecords = async (patientId?: string) => {
   try {
     // Mock data for medical records
-    return [];
+    const mockRecords = [
+      {
+        id: "1",
+        patient_id: "1",
+        patient_name: "John Doe",
+        record_date: "2025-03-15T10:00:00",
+        doctor_name: "Dr. Smith",
+        diagnosis: "Common Cold",
+        notes: "Patient presented with cough and runny nose."
+      },
+      {
+        id: "2",
+        patient_id: "2",
+        patient_name: "Jane Smith",
+        record_date: "2025-03-20T14:30:00",
+        doctor_name: "Dr. Johnson",
+        diagnosis: "Hypertension",
+        notes: "Blood pressure elevated. Prescribed medication and lifestyle changes."
+      }
+    ];
+    
+    // Filter by patient ID if provided
+    if (patientId) {
+      return mockRecords.filter(record => record.patient_id === patientId);
+    }
+    
+    return mockRecords;
   } catch (error) {
     handleApiError(error, "Failed to fetch medical records");
     return [];
@@ -751,7 +843,43 @@ export const fetchMedicalRecords = async (patientId?: string) => {
 export const fetchBillingRecords = async (patientId?: string, paymentStatus?: string) => {
   try {
     // Mock data for billing records
-    return [];
+    const mockBillings = [
+      {
+        id: "1",
+        patient_id: "1",
+        patient_name: "John Doe",
+        invoice_date: "2025-03-15",
+        amount: 250.00,
+        payment_status: "Paid",
+        items: [
+          { description: "Consultation", amount: 100.00 },
+          { description: "Blood Test", amount: 150.00 }
+        ]
+      },
+      {
+        id: "2",
+        patient_id: "2",
+        patient_name: "Jane Smith",
+        invoice_date: "2025-03-20",
+        amount: 500.00,
+        payment_status: "Pending",
+        items: [
+          { description: "X-Ray", amount: 300.00 },
+          { description: "Medication", amount: 200.00 }
+        ]
+      }
+    ];
+    
+    // Apply filters
+    let filtered = [...mockBillings];
+    if (patientId) {
+      filtered = filtered.filter(bill => bill.patient_id === patientId);
+    }
+    if (paymentStatus) {
+      filtered = filtered.filter(bill => bill.payment_status === paymentStatus);
+    }
+    
+    return filtered;
   } catch (error) {
     handleApiError(error, "Failed to fetch billing records");
     return [];
@@ -762,7 +890,42 @@ export const fetchBillingRecords = async (patientId?: string, paymentStatus?: st
 export const fetchInventoryItems = async (category?: string) => {
   try {
     // Mock data for inventory items
-    return [];
+    const mockInventory = [
+      {
+        id: "1",
+        name: "Surgical Masks",
+        category: "PPE",
+        quantity: 500,
+        unit: "pieces",
+        reorder_level: 100,
+        status: "In Stock"
+      },
+      {
+        id: "2",
+        name: "Hand Sanitizer",
+        category: "Hygiene",
+        quantity: 200,
+        unit: "bottles",
+        reorder_level: 50,
+        status: "In Stock"
+      },
+      {
+        id: "3",
+        name: "Syringes",
+        category: "Medical Supplies",
+        quantity: 1000,
+        unit: "pieces",
+        reorder_level: 200,
+        status: "In Stock"
+      }
+    ];
+    
+    // Filter by category if provided
+    if (category) {
+      return mockInventory.filter(item => item.category === category);
+    }
+    
+    return mockInventory;
   } catch (error) {
     handleApiError(error, "Failed to fetch inventory items");
     return [];
@@ -773,7 +936,33 @@ export const fetchInventoryItems = async (category?: string) => {
 export const fetchEmergencyCases = async (status?: string) => {
   try {
     // Mock data for emergency cases
-    return [];
+    const mockCases = [
+      {
+        id: "1",
+        patient_name: "Robert Johnson",
+        arrival_time: "2025-04-05T08:30:00",
+        condition: "Cardiac Arrest",
+        severity: "Critical",
+        attending_doctor: "Dr. Sarah Johnson",
+        status: "In Treatment"
+      },
+      {
+        id: "2",
+        patient_name: "Emily Davis",
+        arrival_time: "2025-04-05T09:15:00",
+        condition: "Broken Leg",
+        severity: "Moderate",
+        attending_doctor: "Dr. Michael Williams",
+        status: "Waiting"
+      }
+    ];
+    
+    // Filter by status if provided
+    if (status) {
+      return mockCases.filter(case_ => case_.status === status);
+    }
+    
+    return mockCases;
   } catch (error) {
     handleApiError(error, "Failed to fetch emergency cases");
     return [];
@@ -783,7 +972,36 @@ export const fetchEmergencyCases = async (status?: string) => {
 export const fetchAmbulances = async (status?: string) => {
   try {
     // Mock data for ambulances
-    return [];
+    const mockAmbulances = [
+      {
+        id: "1",
+        vehicle_number: "AMB-001",
+        driver_name: "John Smith",
+        status: "Available",
+        last_maintenance: "2025-03-01"
+      },
+      {
+        id: "2",
+        vehicle_number: "AMB-002",
+        driver_name: "Mike Johnson",
+        status: "On Call",
+        last_maintenance: "2025-03-15"
+      },
+      {
+        id: "3",
+        vehicle_number: "AMB-003",
+        driver_name: "David Brown",
+        status: "Maintenance",
+        last_maintenance: "2025-04-01"
+      }
+    ];
+    
+    // Filter by status if provided
+    if (status) {
+      return mockAmbulances.filter(amb => amb.status === status);
+    }
+    
+    return mockAmbulances;
   } catch (error) {
     handleApiError(error, "Failed to fetch ambulances");
     return [];
@@ -794,7 +1012,29 @@ export const fetchAmbulances = async (status?: string) => {
 export const fetchInsurancePlans = async () => {
   try {
     // Mock data for insurance plans
-    return [];
+    return [
+      {
+        id: "1",
+        name: "Basic Health Plan",
+        coverage: "70%",
+        monthly_premium: 150,
+        description: "Basic coverage for essential medical services"
+      },
+      {
+        id: "2",
+        name: "Premium Health Plan",
+        coverage: "90%",
+        monthly_premium: 300,
+        description: "Comprehensive coverage including specialized treatments"
+      },
+      {
+        id: "3",
+        name: "Family Health Plan",
+        coverage: "80%",
+        monthly_premium: 450,
+        description: "Coverage for the entire family with additional benefits"
+      }
+    ];
   } catch (error) {
     handleApiError(error, "Failed to fetch insurance plans");
     return [];
@@ -804,7 +1044,17 @@ export const fetchInsurancePlans = async () => {
 export const fetchPatientInsurance = async (patientId: string) => {
   try {
     // Mock data for patient insurance
-    return [];
+    return [
+      {
+        id: "1",
+        patient_id: patientId,
+        insurance_provider: "HealthGuard",
+        policy_number: "HG123456",
+        plan_name: "Premium Health Plan",
+        coverage_start_date: "2025-01-01",
+        coverage_end_date: "2025-12-31"
+      }
+    ];
   } catch (error) {
     handleApiError(error, "Failed to fetch patient insurance details");
     return [];
@@ -815,7 +1065,42 @@ export const fetchPatientInsurance = async (patientId: string) => {
 export const fetchSupportTickets = async (status?: string) => {
   try {
     // Mock data for support tickets
-    return [];
+    const mockTickets = [
+      {
+        id: "1",
+        subject: "System Access Issue",
+        department: "IT",
+        created_by: "Dr. Johnson",
+        created_at: "2025-04-01T10:30:00",
+        status: "Open",
+        priority: "High"
+      },
+      {
+        id: "2",
+        subject: "Equipment Malfunction",
+        department: "Maintenance",
+        created_by: "Nurse Williams",
+        created_at: "2025-04-02T14:15:00",
+        status: "In Progress",
+        priority: "Medium"
+      },
+      {
+        id: "3",
+        subject: "Billing Inquiry",
+        department: "Finance",
+        created_by: "Admin Staff",
+        created_at: "2025-04-03T09:45:00",
+        status: "Closed",
+        priority: "Low"
+      }
+    ];
+    
+    // Filter by status if provided
+    if (status) {
+      return mockTickets.filter(ticket => ticket.status === status);
+    }
+    
+    return mockTickets;
   } catch (error) {
     handleApiError(error, "Failed to fetch support tickets");
     return [];
@@ -826,7 +1111,31 @@ export const fetchSupportTickets = async (status?: string) => {
 export const fetchPrescriptions = async (patientId?: string) => {
   try {
     // Mock data for prescriptions
-    return [];
+    const mockPrescriptions = [
+      {
+        id: "1",
+        patient_id: "1",
+        patient_name: "John Doe",
+        doctor_name: "Dr. Smith",
+        prescription_date: "2025-04-01",
+        status: "Active"
+      },
+      {
+        id: "2",
+        patient_id: "2",
+        patient_name: "Jane Smith",
+        doctor_name: "Dr. Johnson",
+        prescription_date: "2025-04-02",
+        status: "Completed"
+      }
+    ];
+    
+    // Filter by patient ID if provided
+    if (patientId) {
+      return mockPrescriptions.filter(prescription => prescription.patient_id === patientId);
+    }
+    
+    return mockPrescriptions;
   } catch (error) {
     handleApiError(error, "Failed to fetch prescriptions");
     return [];
@@ -836,7 +1145,26 @@ export const fetchPrescriptions = async (patientId?: string) => {
 export const fetchPrescriptionItems = async (prescriptionId: string) => {
   try {
     // Mock data for prescription items
-    return [];
+    return [
+      {
+        id: "1",
+        prescription_id: prescriptionId,
+        medication_name: "Amoxicillin",
+        dosage: "500mg",
+        frequency: "3 times a day",
+        duration: "7 days",
+        instructions: "Take with food"
+      },
+      {
+        id: "2",
+        prescription_id: prescriptionId,
+        medication_name: "Ibuprofen",
+        dosage: "400mg",
+        frequency: "As needed",
+        duration: "5 days",
+        instructions: "Take for pain"
+      }
+    ];
   } catch (error) {
     handleApiError(error, "Failed to fetch prescription items");
     return [];
@@ -847,7 +1175,44 @@ export const fetchPrescriptionItems = async (prescriptionId: string) => {
 export const fetchTelemedicineSessions = async (filters?: { patientId?: string; doctorId?: string; status?: string }) => {
   try {
     // Mock data for telemedicine sessions
-    return [];
+    const mockSessions = [
+      {
+        id: "1",
+        patient_id: "1",
+        patient_name: "John Doe",
+        doctor_id: "1",
+        doctor_name: "Dr. Sarah Johnson",
+        scheduled_time: "2025-04-10T10:00:00",
+        duration_minutes: 30,
+        status: "Scheduled",
+        meeting_link: "https://meet.example.com/session1"
+      },
+      {
+        id: "2",
+        patient_id: "2",
+        patient_name: "Jane Smith",
+        doctor_id: "3",
+        doctor_name: "Dr. Jessica Brown",
+        scheduled_time: "2025-04-11T14:30:00",
+        duration_minutes: 45,
+        status: "Completed",
+        meeting_link: "https://meet.example.com/session2"
+      }
+    ];
+    
+    // Apply filters
+    let filtered = [...mockSessions];
+    if (filters?.patientId) {
+      filtered = filtered.filter(session => session.patient_id === filters.patientId);
+    }
+    if (filters?.doctorId) {
+      filtered = filtered.filter(session => session.doctor_id === filters.doctorId);
+    }
+    if (filters?.status) {
+      filtered = filtered.filter(session => session.status === filters.status);
+    }
+    
+    return filtered;
   } catch (error) {
     handleApiError(error, "Failed to fetch telemedicine sessions");
     return [];

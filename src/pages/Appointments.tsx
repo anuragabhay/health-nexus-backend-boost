@@ -18,6 +18,7 @@ const Appointments = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [filterOptions, setFilterOptions] = useState({
     startDate: '',
     endDate: '',
@@ -36,55 +37,44 @@ const Appointments = () => {
 
   const handleCreateAppointment = async (appointmentData: any) => {
     try {
+      setIsSubmitting(true);
       await createAppointment(appointmentData);
       setIsAddDialogOpen(false);
       refetch();
-      toast({
-        title: "Success",
-        description: "Appointment created successfully",
-      });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to create appointment",
-        variant: "destructive",
-      });
+      console.error("Error creating appointment:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleUpdateAppointment = async (appointmentData: any) => {
+    if (!selectedAppointment) return;
+    
     try {
+      setIsSubmitting(true);
       await updateAppointment(selectedAppointment.id, appointmentData);
       setIsEditDialogOpen(false);
       refetch();
-      toast({
-        title: "Success",
-        description: "Appointment updated successfully",
-      });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update appointment",
-        variant: "destructive",
-      });
+      console.error("Error updating appointment:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleDeleteAppointment = async () => {
+    if (!selectedAppointment) return;
+    
     try {
+      setIsSubmitting(true);
       await deleteAppointment(selectedAppointment.id);
       setIsDeleteDialogOpen(false);
       refetch();
-      toast({
-        title: "Success",
-        description: "Appointment deleted successfully",
-      });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete appointment",
-        variant: "destructive",
-      });
+      console.error("Error deleting appointment:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -125,37 +115,6 @@ const Appointments = () => {
       variant: "destructive",
     });
   }
-
-  // Since we're using mock data for appointments, we'll create some sample data
-  const mockAppointments = [
-    {
-      id: "1",
-      patient_id: "1",
-      patient_name: "John Doe",
-      appointment_date: "2025-04-10T09:00:00",
-      purpose: "General Checkup",
-      status: "scheduled",
-      doctor_name: "Dr. Smith"
-    },
-    {
-      id: "2",
-      patient_id: "2",
-      patient_name: "Jane Smith",
-      appointment_date: "2025-04-11T10:30:00",
-      purpose: "Follow-up",
-      status: "completed",
-      doctor_name: "Dr. Johnson"
-    },
-    {
-      id: "3",
-      patient_id: "3",
-      patient_name: "Robert Brown",
-      appointment_date: "2025-04-08T14:15:00",
-      purpose: "Consultation",
-      status: "cancelled",
-      doctor_name: "Dr. Williams"
-    }
-  ];
 
   return (
     <MainLayout>
@@ -227,7 +186,7 @@ const Appointments = () => {
         </div>
       ) : (
         <>
-          {mockAppointments && mockAppointments.length > 0 ? (
+          {appointments && appointments.length > 0 ? (
             <div className="border rounded-md">
               <Table>
                 <TableHeader>
@@ -241,7 +200,7 @@ const Appointments = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockAppointments.map((appointment) => (
+                  {appointments.map((appointment) => (
                     <TableRow key={appointment.id}>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -311,7 +270,8 @@ const Appointments = () => {
           <AppointmentForm 
             patients={patients || []}
             onSubmit={handleCreateAppointment} 
-            onCancel={() => setIsAddDialogOpen(false)} 
+            onCancel={() => setIsAddDialogOpen(false)}
+            isSubmitting={isSubmitting}
           />
         </DialogContent>
       </Dialog>
@@ -329,7 +289,8 @@ const Appointments = () => {
             appointment={selectedAppointment}
             patients={patients || []}
             onSubmit={handleUpdateAppointment} 
-            onCancel={() => setIsEditDialogOpen(false)} 
+            onCancel={() => setIsEditDialogOpen(false)}
+            isSubmitting={isSubmitting}
           />
         </DialogContent>
       </Dialog>
@@ -344,11 +305,21 @@ const Appointments = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>No, Keep It</Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsDeleteDialogOpen(false)}
+              disabled={isSubmitting}
+            >
+              No, Keep It
+            </Button>
             <Button 
               variant="destructive" 
               onClick={handleDeleteAppointment}
+              disabled={isSubmitting}
             >
+              {isSubmitting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : null}
               Yes, Cancel Appointment
             </Button>
           </div>
