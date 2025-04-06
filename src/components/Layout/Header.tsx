@@ -23,9 +23,8 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
   const handleSignOut = async () => {
     try {
       await signOut();
-      toast.success("Logged out successfully");
     } catch (error) {
-      toast.error("Error signing out");
+      console.error("Error signing out:", error);
     }
   };
 
@@ -56,7 +55,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
             <DropdownMenuContent align="end">
               <div className="flex items-center justify-start gap-2 p-2">
                 <div className="flex flex-col space-y-1 leading-none">
-                  <p className="font-medium">{user.user_metadata.name || user.email}</p>
+                  <p className="font-medium">{user.user_metadata?.name || user.email}</p>
                   <p className="w-[200px] truncate text-sm text-muted-foreground">
                     {user.email}
                   </p>
