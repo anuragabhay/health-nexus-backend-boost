@@ -20,42 +20,152 @@ import Insurance from "./pages/Insurance";
 import Telemedicine from "./pages/Telemedicine";
 import Support from "./pages/Support";
 import NotFound from "./pages/NotFound";
+import Auth from "./pages/Auth";
+import { AuthProvider } from "./context/AuthContext";
+import { AuthGuard, RedirectIfAuthenticated } from "./components/AuthGuard";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route 
-            path="/" 
-            element={
-              <MainLayout>
-                <DashboardOverview />
-              </MainLayout>
-            } 
-          />
-          <Route path="/patients" element={<Patients />} />
-          <Route path="/appointments" element={<Appointments />} />
-          <Route path="/staff" element={<Staff />} />
-          <Route path="/medical-records" element={<MedicalRecords />} />
-          <Route path="/wards" element={<Wards />} />
-          <Route path="/billing" element={<Billing />} />
-          <Route path="/inventory" element={<Inventory />} />
-          <Route path="/laboratory" element={<Laboratory />} />
-          <Route path="/emergency" element={<Emergency />} />
-          <Route path="/pharmacy" element={<Pharmacy />} />
-          <Route path="/insurance" element={<Insurance />} />
-          <Route path="/telemedicine" element={<Telemedicine />} />
-          <Route path="/support" element={<Support />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            {/* Auth routes */}
+            <Route 
+              path="/auth" 
+              element={
+                <RedirectIfAuthenticated>
+                  <Auth />
+                </RedirectIfAuthenticated>
+              } 
+            />
+            
+            {/* Protected routes */}
+            <Route element={<AuthGuard />}>
+              <Route 
+                path="/" 
+                element={
+                  <MainLayout>
+                    <DashboardOverview />
+                  </MainLayout>
+                } 
+              />
+              <Route 
+                path="/patients" 
+                element={
+                  <MainLayout>
+                    <Patients />
+                  </MainLayout>
+                } 
+              />
+              <Route 
+                path="/appointments" 
+                element={
+                  <MainLayout>
+                    <Appointments />
+                  </MainLayout>
+                } 
+              />
+              <Route 
+                path="/staff" 
+                element={
+                  <MainLayout>
+                    <Staff />
+                  </MainLayout>
+                } 
+              />
+              <Route 
+                path="/medical-records" 
+                element={
+                  <MainLayout>
+                    <MedicalRecords />
+                  </MainLayout>
+                } 
+              />
+              <Route 
+                path="/wards" 
+                element={
+                  <MainLayout>
+                    <Wards />
+                  </MainLayout>
+                } 
+              />
+              <Route 
+                path="/billing" 
+                element={
+                  <MainLayout>
+                    <Billing />
+                  </MainLayout>
+                } 
+              />
+              <Route 
+                path="/inventory" 
+                element={
+                  <MainLayout>
+                    <Inventory />
+                  </MainLayout>
+                } 
+              />
+              <Route 
+                path="/laboratory" 
+                element={
+                  <MainLayout>
+                    <Laboratory />
+                  </MainLayout>
+                } 
+              />
+              <Route 
+                path="/emergency" 
+                element={
+                  <MainLayout>
+                    <Emergency />
+                  </MainLayout>
+                } 
+              />
+              <Route 
+                path="/pharmacy" 
+                element={
+                  <MainLayout>
+                    <Pharmacy />
+                  </MainLayout>
+                } 
+              />
+              <Route 
+                path="/insurance" 
+                element={
+                  <MainLayout>
+                    <Insurance />
+                  </MainLayout>
+                } 
+              />
+              <Route 
+                path="/telemedicine" 
+                element={
+                  <MainLayout>
+                    <Telemedicine />
+                  </MainLayout>
+                } 
+              />
+              <Route 
+                path="/support" 
+                element={
+                  <MainLayout>
+                    <Support />
+                  </MainLayout>
+                } 
+              />
+            </Route>
+            
+            {/* 404 route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

@@ -1,45 +1,89 @@
 
 import React from 'react';
-import { Bell, Menu, Search } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import Sidebar from './Sidebar';
+import { Link } from 'react-router-dom';
+import { Menu, Bell, User, LogOut } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from '@/context/AuthContext';
+import { toast } from 'sonner';
 
 interface HeaderProps {
-  title?: string;
+  toggleSidebar?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ title = "Dashboard" }) => {
+const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success("Logged out successfully");
+    } catch (error) {
+      toast.error("Error signing out");
+    }
+  };
+
   return (
-    <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6">
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button variant="outline" size="icon" className="lg:hidden">
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle Menu</span>
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="lg:hidden">
-          <Sidebar />
-        </SheetContent>
-      </Sheet>
-      <div className="w-full flex items-center gap-2 md:ml-auto md:gap-4 lg:gap-6">
-        <div className="relative flex-1 md:grow-0 lg:w-64">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input 
-            type="search" 
-            placeholder="Search..." 
-            className="w-full rounded-lg bg-background pl-8 md:w-auto lg:w-64" 
-          />
-        </div>
-        <Button variant="outline" size="icon" className="rounded-full">
-          <Bell className="h-4 w-4" />
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+      <button 
+        onClick={toggleSidebar} 
+        className="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 w-10 md:hidden"
+      >
+        <Menu className="h-5 w-5" />
+        <span className="sr-only">Toggle Menu</span>
+      </button>
+      <div className="flex-1"></div>
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" size="icon">
+          <Bell className="h-5 w-5" />
           <span className="sr-only">Notifications</span>
         </Button>
-        <Button variant="ghost" size="sm" className="gap-1 md:flex">
-          <span className="hidden lg:inline-flex">Admin User</span>
-        </Button>
+        
+        {user ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <User className="h-5 w-5" />
+                <span className="sr-only">User menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <div className="flex items-center justify-start gap-2 p-2">
+                <div className="flex flex-col space-y-1 leading-none">
+                  <p className="font-medium">{user.user_metadata.name || user.email}</p>
+                  <p className="w-[200px] truncate text-sm text-muted-foreground">
+                    {user.email}
+                  </p>
+                </div>
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link to="/profile">Profile</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/settings">Settings</Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="cursor-pointer text-destructive focus:text-destructive"
+                onClick={handleSignOut}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Button asChild variant="default" size="sm">
+            <Link to="/auth">Login</Link>
+          </Button>
+        )}
       </div>
     </header>
   );
